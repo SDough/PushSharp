@@ -119,25 +119,56 @@ namespace PushSharp.Firebase
 
                 foreach (var r in response.Error.Details)
                 {
-                    switch(r.getType())
+                    switch (r.getType())
                     {
                         case ErrorType.BadRequest:
-                            foreach(var f in r.FieldViolations)
                             {
-                                if(f.Description == "Invalid registration token")
+                                foreach (var f in r.FieldViolations)
                                 {
-                                    throw new DeviceSubscriptionExpiredException(notification);                                    
-                                }
-                            }
-                            break;
-                        }
-                    }
+                                    if (f.Description == "Invalid registration token")
+                                    {
 
-                    throw new FirebaseNotificationException(notification, "HTTP 400 Bad Request", response);
+                                        throw new DeviceSubscriptionExpiredException(notification)
+                                        {
+                                            OldSubscriptionId = notification.Message.Token
+                                        };
+                                    }
+                                }
+                                break;
+                            }
+                    }
                 }
 
-                Log.Error($"Firebase-Send:{httpResponse.StatusCode} Error:{responseBody}");
-                throw new FirebaseNotificationException(notification, "Firebase HTTP Error: " + httpResponse.StatusCode, response);
+                throw new FirebaseNotificationException(notification, "HTTP 400 Bad Request", response);
+                
+            }
+
+            if (response.Error.Code == 404)
+            {
+                Log.Error($"HTTP 404 Not Found {responseBody}");
+
+                foreach (var r in response.Error.Details)
+                {
+                    switch (r.getType())
+                    {
+                        case ErrorType.FcmError:
+                            {
+                                // They have more then likely removed the app so go down the same route to delete the token from the system
+                                if (r.ErrorCode == "UNREGISTERED")
+                                {
+                                    throw new DeviceSubscriptionExpiredException(notification)
+                                    {
+                                        OldSubscriptionId = notification.Message.Token
+                                    };
+                                }
+                                break;
+                            }
+                    }
+                }
+            }
+
+            Log.Error($"Firebase-Send:{httpResponse.StatusCode} Error:{responseBody}");
+            throw new FirebaseNotificationException(notification, "Firebase HTTP Error: " + responseBody, response);
 
         }
     }

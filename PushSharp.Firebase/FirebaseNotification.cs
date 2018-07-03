@@ -14,18 +14,7 @@ namespace PushSharp.Firebase
         public static FirebaseNotification ForSingleRegistrationId(FirebaseNotification msg, string registrationId)
         {
             var result = new FirebaseNotification();
-            //result.Tag = msg.Tag;
-            //result.MessageId = msg.MessageId;
-            //result.RegistrationIds.Add(registrationId);
-            //result.To = null;
-            //result.CollapseKey = msg.CollapseKey;
-            //result.Data = msg.Data;
-            //result.DelayWhileIdle = msg.DelayWhileIdle;
-            //result.ContentAvailable = msg.ContentAvailable;
-            //result.DryRun = msg.DryRun;
-            //result.Priority = msg.Priority;
-            //result.NotificationKey = msg.NotificationKey;
-
+            result.MessageId = msg.MessageId;
             return result;
         }
 
